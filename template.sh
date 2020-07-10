@@ -16,6 +16,7 @@
 
 # Bash options for strict error checking
 set -o errexit -o errtrace -o pipefail -o nounset
+shopt -s inherit_errexit 2>/dev/null || true
 
 # Self path
 SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
@@ -56,12 +57,16 @@ usage() { grep '^#/' "$0" | cut --characters=4-; exit 0; }
 REGEX='(^|\W)(-h|--help)($|\W)'
 if [[ "$*" =~ $REGEX ]]; then usage; fi
 
-# Trace all commands
-set -o xtrace
-
 
 
 # Script start
 # ============
 
+# Trace all commands
+set -o xtrace
+
 log "Script running"
+
+ls -1 /tmp
+
+log "Done!"

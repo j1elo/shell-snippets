@@ -12,6 +12,7 @@
 
 # Bash options for strict error checking
 set -o errexit -o errtrace -o pipefail -o nounset
+shopt -s inherit_errexit 2>/dev/null || true
 
 # Self path
 SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
