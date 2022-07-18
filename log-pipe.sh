@@ -1,32 +1,33 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Create an output pipe for debug logs.
-#
-# This script uses `mkfifo` to create an output pipe which can be used by an
-# script or application to generate a debug log.
-#
-# Sources:
-# * http://stackoverflow.com/questions/1221833/bash-pipe-output-and-capture-exit-status
-# * http://mywiki.wooledge.org/BashFAQ/085
-# * https://unix.stackexchange.com/questions/25372/turn-off-buffering-in-pipe
+#/ Create an output pipe for debug logs.
+#/
+#/ This script uses `mkfifo` to create an output pipe which can be used by an
+#/ script or application to generate a debug log.
+#/
+#/ Sources:
+#/ * http://stackoverflow.com/questions/1221833/bash-pipe-output-and-capture-exit-status
+#/ * http://mywiki.wooledge.org/BashFAQ/085
+#/ * https://unix.stackexchange.com/questions/25372/turn-off-buffering-in-pipe
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Self path
-SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
-SELF_NAME="${SELF_FILE%.*}"                 # File name without extension
+# Trace all commands (to stderr).
+#set -o xtrace
+
+# Self path.
+SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name.
+SELF_NAME="${SELF_FILE%.*}"                 # File name without extension.
 
 # Make output pipe
 mkfifo log
 stdbuf --output=L tail -f log | tee -a "${SELF_NAME}.log" &
 
-# Exit trap -- Runs at the end or, thanks to "errexit", upon any error
-on_exit() {
-    { _RC="$?"; set +x; } 2>/dev/null
-    if ((_RC)); then echo "ERROR ($_RC)"; else echo "SUCCESS"; fi
-
+# Exit trap function.
+# Runs always at the end, either on success or error (`set -o errexit`).
+function on_exit {
     # Upon exit, remove output pipe
     [[ -p log ]] && rm log
 }

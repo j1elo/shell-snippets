@@ -1,37 +1,33 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Configure the environment and launch an application.
-#
-# This script configures the environment as required for an application, adding
-# all sorts of things commonly used with customized environments such as new
-# PATH directories and new shared libraries to be loaded. Then, a program which
-# has the same name as this script is launched.
-#
-# The launcher script should be placed in the same directory where the target
-# application is located.
-#
-# Notes:
-# * "$@" expands to a list of this script's arguments.
-# * "${VAR:-0}" expands to VAR if set, or to "0" if VAR is empty or unset.
+#/ Configure the environment and launch an application.
+#/
+#/ This script configures the environment as required for an application, adding
+#/ all sorts of things commonly used with customized environments such as new
+#/ PATH directories and new shared libraries to be loaded. Then, a program which
+#/ has the same name as this script is launched.
+#/
+#/ The launcher script should be placed in the same directory where the target
+#/ application is located.
+#/
+#/ Notes:
+#/ * "$@" expands to a list of this script's arguments.
+#/ * "${VAR:-0}" expands to VAR if set, or to "0" if VAR is empty or unset.
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Exit trap -- Runs at the end or, thanks to "errexit", upon any error
-on_exit() {
-    { _RC="$?"; set +x; } 2>/dev/null
-    if ((_RC)); then echo "ERROR ($_RC)"; else echo "SUCCESS"; fi
-}
-trap on_exit EXIT
+# Trace all commands (to stderr).
+#set -o xtrace
 
-# Self path
-SELF_PATH="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)" # Absolute canonical path
-SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
-SELF_NAME="${SELF_FILE%.*}"                 # File name without extension
+# Self path.
+SELF_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null && pwd -P)"
+SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name.
+SELF_NAME="${SELF_FILE%.*}"                 # File name without extension.
 
 # Full path to the target application
-APP_PATH="${SELF_PATH}/${SELF_NAME}"
+APP_PATH="${SELF_DIR}/${SELF_NAME}"
 
 # Generate a dummy application, for demonstration purposes
 if [[ ! -f "$APP_PATH" ]]; then

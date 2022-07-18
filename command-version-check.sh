@@ -1,26 +1,12 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Snippet: Check if a command is installed and if its version is high enough.
+#/ Check if a command is installed and if its version is high enough.
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Self path
-SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
-
-# Log function
-# This disables and re-enables debug trace mode, only if it was already set
-# Source: https://superuser.com/a/1338887/922762
-shopt -s expand_aliases # This trick requires enabling aliases in Bash
-echo_and_restore() {
-    echo "[$SELF_FILE] $(cat -)" >&2
-    # shellcheck disable=SC2154
-    case "$flags" in (*x*) set -x; esac
-}
-alias log='({ flags="$-"; set +x; } 2>/dev/null; echo_and_restore) <<<'
-
-# Trace all commands
+# Trace all commands (to stderr).
 set -o xtrace
 
 
@@ -42,6 +28,11 @@ COMMAND="echo"
 COMMAND_ARG="This is version 111.221.333ABC -> More text"
 # COMMAND_ARG="This is version 111.222.333.4.5 (More text)"
 VERSION_REQ="111.222.0"
+
+
+
+# Check command
+# =============
 
 # Check if the requested command is installed and available in the environment
 if ! command -v "$COMMAND" >/dev/null; then

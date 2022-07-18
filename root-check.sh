@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Snippet: Check if this script is being run with root privileges.
+#/ Check if this script is being run with root privileges.
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Self path
-SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
+# Trace all commands (to stderr).
+set -o xtrace
 
 # Check root permissions
 [[ "$(id -u)" -eq 0 ]] || {
@@ -15,4 +15,4 @@ SELF_FILE="$(basename "${BASH_SOURCE[0]}")" # File name
     exit 1
 }
 
-echo "Script running with root privileges: [$SELF_FILE]"
+echo "Script running successfully with root privileges!"

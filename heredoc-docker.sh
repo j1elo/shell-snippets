@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Snippet: Use the "heredoc" shell feature to run in-place Docker commands.
-# With this technique, all those "works for me" issues will dissappear!
+#/ Use the "heredoc" shell feature to run in-place Docker commands.
+#/ With this technique, all those "works for me" issues will dissappear!
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Exit trap -- Runs at the end or, thanks to "errexit", upon any error
-on_exit() {
-    { _RC="$?"; set +x; } 2>/dev/null
-    if ((_RC)); then echo "ERROR ($_RC)"; else echo "SUCCESS"; fi
-}
-trap on_exit EXIT
+# Trace all commands (to stderr).
+#set -o xtrace
 
 
+
+# Heredoc
+# =======
 
 # In-place Docker container commands -- BEGIN
 docker run --rm -i ubuntu:18.04 /bin/bash <<'DOCKERCOMMANDS'

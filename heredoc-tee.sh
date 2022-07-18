@@ -1,28 +1,24 @@
 #!/usr/bin/env bash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
-# Snippet: Use the "heredoc" shell feature to create a file in-place.
-#
-# This technique can be used with any command that accepts input, but the nice
-# thing about `tee` is that it allows creating root files with putting `sudo`
-# at the very start of the command, which matches the typical structure of how
-# `sudo` commands are usually called (easier to understand by beginners).
-#
-# Note: Using single quotation marks, as in 'EOF', is used to prevent the shell
-# from performing any kind of wildcard expansion or variable substitution.
-#
-# Note: `tee` by itself will replace the file. If you want to _append_ to an
-# already existing file, use `tee --append`.
+#/ Use the "heredoc" shell feature to create a file in-place.
+#/
+#/ This technique can be used with any command that accepts input, but the nice
+#/ thing about `tee` is that it allows creating root files with just adding
+#/ `sudo` at the very start of the command, which matches the typical structure
+#/ of how `sudo` commands are usually called (easier for beginners).
+#/
+#/ Note: Using single quotation marks, as in 'EOF', is used to prevent the shell
+#/ from performing any kind of wildcard expansion or variable substitution.
+#/
+#/ Note: `tee` by itself will replace the file. If you want to _append_ to an
+#/ already existing file, use `tee --append`.
 
-# Bash options for strict error checking
-set -o errexit -o errtrace -o pipefail -o nounset
-shopt -s inherit_errexit 2>/dev/null || true
+# Shell setup.
+source "bash.conf.sh" || { echo "Cannot load Bash config file"; exit 1; }
 
-# Exit trap -- Runs at the end or, thanks to "errexit", upon any error
-on_exit() {
-    { _RC="$?"; set +x; } 2>/dev/null
-    if ((_RC)); then echo "ERROR ($_RC)"; else echo "SUCCESS"; fi
-}
-trap on_exit EXIT
+# Trace all commands (to stderr).
+#set -o xtrace
 
 # Create a temp file used for the heredoc example
 TEMP_FILE="$(mktemp)"
