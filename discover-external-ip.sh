@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
+# shellcheck shell=dash
+# Checked with ShellCheck (https://www.shellcheck.net/)
 
 #/ Use DNS to find out about the external IP of the running system.
 #/
@@ -33,18 +35,13 @@
 # Shell setup
 # ===========
 
-# Bash options for strict error checking.
-set -o errexit -o errtrace -o pipefail -o nounset
+# Shell options for strict error checking.
+for OPTION in errexit errtrace pipefail nounset; do
+    set -o | grep -wq "$OPTION" && set -o "$OPTION"
+done
 
 # Trace all commands (to stderr).
 #set -o xtrace
-
-# Trap function for unhandled errors.
-function on_error() {
-    echo "[$0] ERROR ($?)" >&2
-    exit 1
-}
-trap on_error ERR
 
 
 
@@ -52,18 +49,11 @@ trap on_error ERR
 # ====================
 
 CFG_IPV4="true"
-CFG_IPV6="false"
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
     case "${1-}" in
-        --ipv4)
-            CFG_IPV4="true"
-            CFG_IPV6="false"
-            ;;
-        --ipv6)
-            CFG_IPV4="false"
-            CFG_IPV6="true"
-            ;;
+        --ipv4) CFG_IPV4="true" ;;
+        --ipv6) CFG_IPV4="false" ;;
         *)
             echo "Invalid argument: '${1-}'" >&2
             exit 1
@@ -74,41 +64,38 @@ done
 
 
 
-# Obtain the external IP address
-# ==============================
+# Discover the external IP address
+# ================================
 
-if [[ "$CFG_IPV4" == "true" ]]; then
-    COMMANDS=(
-        'dig @resolver1.opendns.com myip.opendns.com A -4 +short'
-        'dig @ns1.google.com o-o.myaddr.l.google.com TXT -4 +short | tr -d \"'
-        'dig @1.1.1.1 whoami.cloudflare TXT CH -4 +short | tr -d \"'
-        'dig @ns1-1.akamaitech.net whoami.akamai.net A -4 +short'
-    )
+if [ "$CFG_IPV4" = "true" ]; then
+    COMMANDS='dig @resolver1.opendns.com myip.opendns.com A -4 +short
+        dig @ns1.google.com o-o.myaddr.l.google.com TXT -4 +short | tr -d \"
+        dig @1.1.1.1 whoami.cloudflare TXT CH -4 +short | tr -d \"
+        dig @ns1-1.akamaitech.net whoami.akamai.net A -4 +short'
 
-    function is_valid_ip() {
+    is_valid_ip() {
         # Check if the input looks like an IPv4 address.
         # Doesn't check if the actual values are valid; assumes they are.
-        echo "$1" | grep --perl-regexp --quiet '^(\d{1,3}\.){3}\d{1,3}$'
+        echo "$1" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
     }
-elif [[ "$CFG_IPV6" == "true" ]]; then
-    COMMANDS=(
-        'dig @resolver1.opendns.com myip.opendns.com AAAA -6 +short'
-        'dig @ns1.google.com o-o.myaddr.l.google.com TXT -6 +short | tr -d \"'
-        'dig @2606:4700:4700::1111 whoami.cloudflare TXT CH -6 +short | tr -d \"'
-    )
+else
+    COMMANDS='dig @resolver1.opendns.com myip.opendns.com AAAA -6 +short
+        dig @ns1.google.com o-o.myaddr.l.google.com TXT -6 +short | tr -d \"
+        dig @2606:4700:4700::1111 whoami.cloudflare TXT CH -6 +short | tr -d \"'
 
-    function is_valid_ip() {
+    is_valid_ip() {
         # Check if the input looks like an IPv6 address.
         # It's almost impossible to check the IPv6 representation because it
         # varies wildly, so just check that there are at least 2 colons.
-        [[ "$(echo "$1" | awk -F':' '{print NF-1}')" -ge 2 ]]
+        [ "$(echo "$1" | awk -F':' '{print NF-1}')" -ge 2 ]
     }
 fi
 
-for COMMAND in "${COMMANDS[@]}"; do
+IFS="$(printf '\nx')" && IFS="${IFS%x}"
+for COMMAND in $COMMANDS; do
     if IP="$(eval "$COMMAND")" && is_valid_ip "$IP"; then
-        echo "$IP"
-        exit 0
+    printf '%s' "$IP"
+    exit 0
     fi
 done
 
